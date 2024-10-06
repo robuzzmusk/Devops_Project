@@ -30,6 +30,14 @@ resource "aws_security_group" "demo-sg" {
         cidr_blocks = ["0.0.0.0/0"]
     }
 
+    ingress { 
+        description = "Jenkins Port"
+        from_port   = 8080
+        to_port     = 8080
+        protocol    = "tcp"
+        cidr_blocks = ["0.0.0.0/0"]
+    }
+
     egress {
         from_port   = 0
         to_port     = 0
@@ -93,3 +101,15 @@ resource "aws_route_table_association" "terraform_key-rta-public-subnet-02" {
     subnet_id = aws_subnet.terraform_key-public-subnet-02.id
     route_table_id = aws_route_table.terraform_key-rt.id
 } 
+
+ module "sgs" {
+    source = "../sg_eks"
+    vpc_id     =     aws_vpc.terraform_key-vpc.id
+ }
+
+  module "eks" {
+       source = "../eks"
+       vpc_id     =     aws_vpc.terraform_key-vpc.id
+       subnet_ids = [aws_subnet.terraform_key-public-subnet-01.id,aws_subnet.terraform_key-public-subnet-02.id]
+       sg_ids = module.sgs.security_group_public
+ }
